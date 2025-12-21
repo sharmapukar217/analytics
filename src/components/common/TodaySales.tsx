@@ -12,6 +12,7 @@ import {
 import { Label, Pie, PieChart } from "recharts";
 import { useGetAnalytics } from "@/hooks/useAnalytics";
 import React from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 
 const chartConfig: ChartConfig = {
   count: { label: "Orders" },
@@ -54,6 +55,13 @@ export function TodaySales() {
     [data?.todaysSales?.total],
   );
 
+  const totalSalesCount = React.useMemo(() => {
+    const orders = data?.todaysSales.orders;
+    if (!orders) return 0;
+
+    return Object.values(orders).reduce((sum, count) => sum + count, 0);
+  }, [data?.todaysSales]);
+
   return (
     <Card className="py-4">
       <CardHeader className="px-4">
@@ -62,65 +70,122 @@ export function TodaySales() {
             <ChartLineIcon className="text-primary size-4" />
             <h1>Today&apos;s Sales</h1>
           </CardTitle>
-          <Button
-            size="icon"
-            variant="ghost"
-            disabled={isRefetching}
-            onClick={() => refetch()}
-          >
-            <RefreshCcwIcon className={isRefetching ? "animate-spin" : ""} />
-          </Button>
         </div>
       </CardHeader>
       <CardContent className="px-4">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
-        >
-          <PieChart>
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <Pie
-              data={chartData}
-              dataKey="count"
-              nameKey="status"
-              innerRadius={75}
-              startAngle={180}
-              endAngle={0}
-              cornerRadius={10}
-              paddingAngle={2}
-            >
-              <Label
-                content={({ viewBox }) => {
-                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                    return (
-                      <text
-                        x={viewBox.cx}
-                        y={(viewBox.cy || 0) / 1.25}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                      >
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) / 1.25}
-                          className="fill-foreground text-4xl font-bold"
-                        >
-                          {totalSales}
-                        </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) / 1.25 + 24}
-                          className="fill-muted-foreground font-medium"
-                        >
-                          Sales
-                        </tspan>
-                      </text>
-                    );
-                  }
-                }}
-              />
-            </Pie>
-          </PieChart>
-        </ChartContainer>
+        <Tabs defaultValue="sales-amount">
+          <TabsList className="w-full">
+            <TabsTrigger value="sales-amount">Sales Amount</TabsTrigger>
+
+            <TabsTrigger value="sales-number">Sales (in price)</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="sales-amount">
+            <div className="max-h-[150px]">
+              <ChartContainer
+                config={chartConfig}
+                className="mx-auto aspect-square max-h-[250px]"
+              >
+                <PieChart>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Pie
+                    data={chartData}
+                    dataKey="count"
+                    nameKey="status"
+                    innerRadius={75}
+                    startAngle={180}
+                    endAngle={0}
+                    cornerRadius={10}
+                    paddingAngle={2}
+                  >
+                    <Label
+                      content={({ viewBox }) => {
+                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                          return (
+                            <text
+                              x={viewBox.cx}
+                              y={(viewBox.cy || 0) / 1.25}
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                            >
+                              <tspan
+                                x={viewBox.cx}
+                                y={(viewBox.cy || 0) / 1.25}
+                                className="fill-foreground text-sm font-bold"
+                              >
+                                {totalSalesCount}
+                              </tspan>
+                              <tspan
+                                x={viewBox.cx}
+                                y={(viewBox.cy || 0) / 1.25 + 16}
+                                className="fill-muted-foreground font-medium"
+                              >
+                                Total Sales
+                              </tspan>
+                            </text>
+                          );
+                        }
+                      }}
+                    />
+                  </Pie>
+                </PieChart>
+              </ChartContainer>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="sales-number">
+            <div className="max-h-[150px]">
+              <ChartContainer
+                config={chartConfig}
+                className="mx-auto aspect-square max-h-[250px]"
+              >
+                <PieChart>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Pie
+                    data={chartData}
+                    dataKey="count"
+                    nameKey="status"
+                    innerRadius={75}
+                    startAngle={180}
+                    endAngle={0}
+                    cornerRadius={10}
+                    paddingAngle={2}
+                  >
+                    <Label
+                      content={({ viewBox }) => {
+                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                          return (
+                            <text
+                              x={viewBox.cx}
+                              y={(viewBox.cy || 0) / 1.25}
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                            >
+                              <tspan
+                                x={viewBox.cx}
+                                y={(viewBox.cy || 0) / 1.25}
+                                className="fill-foreground text-sm font-bold"
+                              >
+                                Rs. {totalSales}
+                              </tspan>
+                              <tspan
+                                x={viewBox.cx}
+                                y={(viewBox.cy || 0) / 1.25 + 16}
+                                className="fill-muted-foreground font-medium"
+                              >
+                                Total Sales Amount
+                              </tspan>
+                            </text>
+                          );
+                        }
+                      }}
+                    />
+                  </Pie>
+                </PieChart>
+              </ChartContainer>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

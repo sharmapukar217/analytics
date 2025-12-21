@@ -68,7 +68,7 @@ export default function WeeklySales() {
   }, [chartData]);
 
   return (
-    <Card className="py-4 select-none">
+    <Card className="py-4 select-none h-fit">
       <CardHeader className="px-4">
         <div className="flex justify-between">
           <CardTitle className="flex items-center gap-2">

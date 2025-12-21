@@ -16,10 +16,10 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-          <QueryClientProvider client={queryClient}>
-            <div className="contents">{children}</div>
-            <ReactQueryDevtools client={queryClient} />
-          </QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          <div className="contents">{children}</div>
+          <ReactQueryDevtools client={queryClient} />
+        </QueryClientProvider>
       </body>
     </html>
   );

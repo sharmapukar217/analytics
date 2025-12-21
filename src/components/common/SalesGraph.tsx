@@ -10,11 +10,13 @@ import {
 } from "@/components/ui/card";
 import { AllSalesGraph } from "./AllSalesGraph";
 import { CompletedOnlySalesGraph } from "./CompletedOnlySalesGraph";
-import { useDays, useGetAnalytics } from "@/hooks/useAnalytics";
+import { useDateRange, useGetAnalytics } from "@/hooks/useAnalytics";
+import { Button } from "../ui/button";
+import { cn } from "@/lib/utils";
 
 export function SalesGraph() {
-  const { days } = useDays();
   const { data } = useGetAnalytics();
+  const { dateRange } = useDateRange();
   const [activeTab, setActiveTab] = React.useState("all");
   const tabOptions = React.useMemo(() => {
     return [
@@ -28,30 +30,34 @@ export function SalesGraph() {
   }, []);
 
   return (
-    <Card className="p-0">
-      <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
+    <Card className="p-0 overflow-clip">
+      <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row overflow-clip">
         <div className="flex h-full flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3">
           <CardTitle>Overall Sales Report</CardTitle>
-          <CardDescription>
-            Showing total sales report for the last {days} days(s)
-          </CardDescription>
+          <CardDescription>Showing total sales report</CardDescription>
         </div>
         <div className="flex">
           {tabOptions.map((tabOption) => {
             return (
-              <button
+              <Button
                 key={tabOption.key}
                 onClick={() => setActiveTab(tabOption.key)}
+                variant={activeTab === tabOption.key ? "default" : "secondary"}
                 data-active={tabOption.key === activeTab ? true : undefined}
-                className="min-w-16 items-center hover:bg-muted/10 focus:bg-muted/50 data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6 duration-500"
+                className="min-w-16 !h-full rounded-none relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
               >
-                <span className="text-muted-foreground text-xs capitalize">
+                <span
+                  className={cn(
+                    "text-primary-foreground/85 text-xs capitalize",
+                    [activeTab !== tabOption.key && "text-foreground/85"],
+                  )}
+                >
                   {tabOption.label}
                 </span>
                 <span className="text-lg leading-none font-bold sm:text-3xl">
                   {tabOption.value}
                 </span>
-              </button>
+              </Button>
             );
           })}
         </div>

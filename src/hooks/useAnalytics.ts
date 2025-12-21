@@ -1,75 +1,57 @@
 import * as React from "react";
 import { create } from "zustand";
-import { request } from "graphql-request";
 import { useQuery } from "@tanstack/react-query";
+import type { DateRange } from "react-day-picker";
 
-import { graphql } from "@/generated";
+import type { AnalyticsData } from "@/lib/types/analytics";
 
-const AnalyticsQuery = graphql(`
-	query Analytics($days: Int) {
-	  analytics(days: $days) {
-	    totalUsers
-	    totalSales
-	    totalOrders {
-	      active
-	      pending
-	      completed
-	      cancelled
-	    }
-	    usersByMonth {
-	      month
-	      value
-	    }
-	    salesByMonth {
-	      month
-	      value
-	    }
-	    ordersByMonth {
-	      month
-	      value
-	    }
-	    todaysSales {
-	      total
-	      orders {
-	        active
-	        pending
-	        completed
-	        cancelled
-	      }
-	    }
-	    weeklySales {
-	      day
-	      date
-	      value
-	    }
-	    overallSalesReport {
-	      all
-	      completed
-	    }
-	  }
-	}
-`);
-
-interface DaysState {
-  days: string;
-  setDays: (value: string) => void;
+interface DateRangeState {
+  dateRange: DateRange | undefined;
+  setDateRange: (value: DateRange | undefined) => void;
 }
 
-export const useDays = create<DaysState>((set) => ({
-  days: "1",
-  setDays: (value: string) => set({ days: value }),
+export const useDateRange = create<DateRangeState>((set) => ({
+  dateRange: {
+    from: new Date(new Date().getFullYear(), 0, 1), // January 1 of current year
+    to: new Date(new Date().getFullYear(), 11, 31), // December 31 of current year
+  },
+  setDateRange: (value: DateRange | undefined) => set({ dateRange: value }),
 }));
 
 export function useGetAnalytics() {
-  const { days } = useDays();
+  const { dateRange } = useDateRange();
 
   return useQuery({
-    enabled: !!days,
-    queryKey: ["analytics", days],
-    queryFn: ({ queryKey }) => {
-      return request("/admin-api", AnalyticsQuery, {
-        days: parseInt(queryKey[1] || "1"),
-      }).then((r) => r.analytics);
+    enabled: !!dateRange,
+    queryKey: ["analytics", dateRange?.from, dateRange?.to],
+    queryFn: async ({ queryKey }) => {
+      const [, from, to] = queryKey;
+
+      const baseUrl = new URL(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/analytics`,
+      );
+      if (from)
+        baseUrl.searchParams.append(
+          "startDate",
+          new Date(from).toISOString().split("T")[0],
+        );
+      if (to)
+        baseUrl.searchParams.append(
+          "endDate",
+          new Date(to).toISOString().split("T")[0],
+        );
+
+      const response = await fetch(baseUrl, {
+        headers: {
+          "X-Analytics-Token": "sastodeal-analytics-token-2025-secure",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch analytics data");
+      }
+
+      return response.json() as Promise<AnalyticsData>;
     },
   });
 }

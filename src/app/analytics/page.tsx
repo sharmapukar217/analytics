@@ -1,18 +1,55 @@
 "use client";
 
-import * as React from "react";
+import { DashboardSidebar } from "@/components/layouts/DashboardSidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import {
   BadgeDollarSignIcon,
+  CheckCircleIcon,
+  CircleXIcon,
+  HourglassIcon,
+  ScrollTextIcon,
   UsersIcon,
+  TrendingUpIcon,
+  ShoppingCartIcon,
+  PackageIcon,
   TruckIcon,
+  ExternalLinkIcon,
   ClockIcon,
-  CheckCheckIcon,
-  XCircleIcon,
+  ChartLineIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Separator } from "@/components/ui/separator";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  PieChart,
+  Pie,
+  Cell,
+  Label,
+} from "recharts";
+
 import { useGetAnalytics } from "@/hooks/useAnalytics";
 import { AnalyticsDateRangePicker } from "@/components/analytics/AnalyticsDateRangePicker";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { TodaySales } from "@/components/common/TodaySales";
 import { StatsCard } from "@/components/common/StatsCard";
 import WeeklySales from "@/components/common/WeeklySales";
@@ -35,13 +72,6 @@ const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 export default function AnalyticsPage() {
   const { data, isLoading, error } = useGetAnalytics();
 
-  const totalActiveOrdersToday = data?.todaysSales.orders.active || 0;
-  const totalCompletedOrdersToday = data?.todaysSales.orders.completed || 0;
-  const totalPendingOrdersToday = data?.todaysSales.orders.pending || 0;
-  const totalCancelledOrdersToday = data?.todaysSales.orders.cancelled || 0;
-
-  const totalOrdersToday = totalActiveOrdersToday + totalCompletedOrdersToday + totalPendingOrdersToday + totalCancelledOrdersToday
-
   return (
     <div className="container pb-8">
       <DashboardHeader />
@@ -50,63 +80,53 @@ export default function AnalyticsPage() {
         <strong>Today&apos;s Sales</strong>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
           <div className="flex flex-col gap-4">
-            <Card className="w-full h-fit gap-0">
+            <Card className="w-full h-fit">
               <CardHeader>
                 <div className="flex justify-between">
                   <div className="grid">
                     <h1 className="text-sm font-medium text-muted-foreground">
                       Sales Overview
                     </h1>
-                    <h2 className="text-xl font-semibold">
-                      Rs. {data?.todaysSales.total || 0}
-                    </h2>
+                    <h2 className="text-xl font-semibold">$38.5k</h2>
                   </div>
-                  <h3 className="text-xs font-semibold">
-                    
-                  </h3>
+                  <h3 className="text-xs font-semibold">+18.2%</h3>
                 </div>
               </CardHeader>
               <CardContent className="grid">
                 <div className="flex items-center justify-between">
                   <div className="grid gap-4">
                     <div className="inline-flex items-center gap-2">
-                      <div className="flex items-center justify-center size-9 bg-green-500 text-white rounded-lg">
-                        <CheckCheckIcon className="size-5" />
+                      <div className="flex items-center justify-center size-9 bg-muted rounded-lg">
+                        <ShoppingCartIcon className="size-5" />
                       </div>
-                      <div className="grid">
-                        <h2 className="text-sm font-semibold">Delivered</h2>
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-medium">
-                            {data?.todaysSales.orders.completed}
-                            {/*<span className="text-green-500">(+62.2%)</span>*/}
-                          </h3>
-                        </div>
-                      </div>
+                      <h2 className="text-sm">Orders</h2>
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-medium">
+                        6,440 <span className="text-green-500">(+62.2%)</span>
+                      </h3>
                     </div>
                   </div>
 
-                  <div className="relative flex flex-col items-center gap-1 h-full">
-                    <div className="w-0.5 h-4 bg-muted rounded-full" />
+                  <div className="relative flex flex-col items-center gap-2 h-full">
+                    <div className="w-0.5 h-full bg-muted rounded-full" />
                     <div className="size-8 shrink-0 flex items-center justify-center bg-muted rounded-full text-xs font-medium text-muted-foreground">
                       Vs
                     </div>
-                    <div className="w-0.5 h-4 bg-muted rounded-full" />
+                    <div className="w-0.5 h-full bg-muted rounded-full" />
                   </div>
 
                   <div className="grid gap-4">
                     <div className="inline-flex items-center gap-2">
-                      <div className="flex items-center justify-center size-9 bg-destructive text-white rounded-lg">
-                        <XCircleIcon className="size-5" />
+                      <div className="flex items-center justify-center size-9 bg-muted rounded-lg">
+                        <PackageIcon className="size-5" />
                       </div>
-
-                      <div className="grid">
-                        <h2 className="text-sm font-semibold">Cancelled</h2>
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-medium">
-                            {data?.todaysSales.orders.cancelled}
-                          </h3>
-                        </div>
-                      </div>
+                      <h2 className="text-sm">Delivery</h2>
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-medium">
+                        6,440 <span className="text-green-500">(+62.2%)</span>
+                      </h3>
                     </div>
                   </div>
                 </div>
@@ -188,24 +208,25 @@ export default function AnalyticsPage() {
                     <div className="flex items-center rounded-md justify-center size-9 bg-primary/10 text-primary">
                       <TruckIcon />
                     </div>
-                    <h2 className="text-lg font-medium">{totalOrdersToday}</h2>
-                  </div>
+                    <h2 className="text-lg font-medium">42</h2>
 
-                  <div className="grid">
-                    <h3 className="text-sm font-semibold">Total Orders</h3>
-                  </div>
-                </CardContent>
-              </Card>
+                    {/*  <div className="ms-auto">
+                      <Dialog>
+                        <DialogTrigger>
+                          <ExternalLinkIcon className="size-4 text-muted-foreground hover:text-primary duration-500" />
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              Today&apos;s Shipped Orders
+                            </DialogTitle>
+                          </DialogHeader>
 
-              <Card className="h-fit">
-                <CardContent className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center rounded-md justify-center size-9 bg-muted text-muted-foreground">
-                      <ClockIcon />
-                    </div>
-                    <h2 className="text-lg font-medium">
-                      {data?.todaysSales.orders.pending}
-                    </h2>
+
+                          <div></div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>*/}
                   </div>
 
                   <div className="grid">
@@ -217,16 +238,32 @@ export default function AnalyticsPage() {
               <Card className="h-fit">
                 <CardContent className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center rounded-md justify-center size-9 bg-destructive/10 text-destructive">
+                    <div className="flex items-center rounded-md justify-center size-9 bg-primary/10 text-primary">
                       <ClockIcon />
                     </div>
-                    <h2 className="text-lg font-medium">
-                      {data?.todaysSales.orders.cancelled}
-                    </h2>
+                    <h2 className="text-lg font-medium">54</h2>
+
+                    {/*  <div className="ms-auto">
+                      <Dialog>
+                        <DialogTrigger>
+                          <ExternalLinkIcon className="size-4 text-muted-foreground hover:text-primary duration-500" />
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              Today&apos;s Shipped Orders
+                            </DialogTitle>
+                          </DialogHeader>
+
+
+                          <div></div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>*/}
                   </div>
 
                   <div className="grid">
-                    <h3 className="text-sm font-semibold">Cancelled Orders</h3>
+                    <h3 className="text-sm font-semibold">Pending Orders</h3>
                   </div>
                 </CardContent>
               </Card>
@@ -234,16 +271,65 @@ export default function AnalyticsPage() {
               <Card className="h-fit">
                 <CardContent className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center rounded-md justify-center size-9 bg-green-500/10 text-green-500">
-                      <CheckCheckIcon />
+                    <div className="flex items-center rounded-md justify-center size-9 bg-primary/10 text-primary">
+                      <ClockIcon />
                     </div>
-                    <h2 className="text-lg font-medium">
-                      {data?.todaysSales.orders.completed}
-                    </h2>
+                    <h2 className="text-lg font-medium">54</h2>
+
+                    {/*  <div className="ms-auto">
+                      <Dialog>
+                        <DialogTrigger>
+                          <ExternalLinkIcon className="size-4 text-muted-foreground hover:text-primary duration-500" />
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              Today&apos;s Shipped Orders
+                            </DialogTitle>
+                          </DialogHeader>
+
+
+                          <div></div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>*/}
                   </div>
 
                   <div className="grid">
-                    <h3 className="text-sm font-semibold">Delivered Orders</h3>
+                    <h3 className="text-sm font-semibold">Pending Orders</h3>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="h-fit">
+                <CardContent className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center rounded-md justify-center size-9 bg-primary/10 text-primary">
+                      <ClockIcon />
+                    </div>
+                    <h2 className="text-lg font-medium">54</h2>
+
+                    {/*  <div className="ms-auto">
+                      <Dialog>
+                        <DialogTrigger>
+                          <ExternalLinkIcon className="size-4 text-muted-foreground hover:text-primary duration-500" />
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              Today&apos;s Shipped Orders
+                            </DialogTitle>
+                          </DialogHeader>
+
+
+                          <div></div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>*/}
+                  </div>
+
+                  <div className="grid">
+                    <h3 className="text-sm font-semibold">Pending Orders</h3>
                   </div>
                 </CardContent>
               </Card>
@@ -251,7 +337,17 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="flex-1 grid gap-4">
-            <TopSellingProducts />
+            <div className="grid gap-2">
+              <Card className="px-0 max-h-[300px] overflow-auto">
+                <CardHeader className="px-4 py-0">
+                  <CardTitle>Top selling products </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <TopSellingProducts />
+                </CardContent>
+              </Card>
+            </div>
+
             <WeeklySales />
           </div>
         </div>

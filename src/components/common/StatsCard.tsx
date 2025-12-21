@@ -5,9 +5,17 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { LineChart, Line, CartesianGrid, XAxis, LabelList } from "recharts";
-import { LucideIcon } from "lucide-react";
+import { ExternalLinkIcon, LucideIcon } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import React from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { AnalyticsDateRangePicker } from "../analytics/AnalyticsDateRangePicker";
 
 type StatsCardProps = {
   title: string;
@@ -43,10 +51,53 @@ export function StatsCard({
   return (
     <Card className="gap-2 py-4">
       <CardHeader className="px-4">
-        <CardTitle className="flex justify-between">
-          <h1>{title}</h1>
-          <Icon className="text-primary size-4" />
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Icon className="text-primary size-4" />
+            <h1>{title}</h1>
+          </CardTitle>
+          <Dialog>
+            <DialogTrigger>
+              <ExternalLinkIcon className="size-4" />
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{title}&apos;s Graph</DialogTitle>
+              </DialogHeader>
+
+              <AnalyticsDateRangePicker disabledPresets={[0, 1]} />
+
+              <div>
+                <ChartContainer
+                  config={chartConfig}
+                  className="min-w-full overflow-auto"
+                >
+                  <LineChart
+                    data={chartData}
+                    margin={{ top: 2, bottom: 2, left: 12, right: 12 }}
+                  >
+                    <ChartTooltip content={<ChartTooltipContent />} />
+
+                    <XAxis
+                      dataKey="month"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={10}
+                      tickFormatter={(value) => value.slice(0, 3)}
+                    />
+
+                    <Line
+                      type="monotone"
+                      dataKey={dataKey}
+                      stroke={`var(--color-${dataKey})`}
+                      strokeWidth={2}
+                    />
+                  </LineChart>
+                </ChartContainer>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </CardHeader>
 
       <CardContent className="grid grid-cols-2 px-4">
@@ -71,35 +122,6 @@ export function StatsCard({
               vs {previousValue} last period
             </small>
           )}
-        </div>
-
-        <div>
-          <ChartContainer
-            config={chartConfig}
-            className="min-w-full overflow-auto"
-          >
-            <LineChart
-              data={chartData}
-              margin={{ top: 2, bottom: 2, left: 12, right: 12 }}
-            >
-              <ChartTooltip content={<ChartTooltipContent />} />
-
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={10}
-                tickFormatter={(value) => value.slice(0, 3)}
-              />
-
-              <Line
-                type="monotone"
-                dataKey={dataKey}
-                stroke={`var(--color-${dataKey})`}
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ChartContainer>
         </div>
       </CardContent>
     </Card>
