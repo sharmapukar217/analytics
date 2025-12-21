@@ -5,6 +5,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useGetAnalytics } from "@/hooks/useAnalytics";
+import React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 const chartData = [
@@ -29,53 +30,55 @@ export function CompletedOnlySalesGraph() {
   const { data } = useGetAnalytics();
 
   return (
-    <>
-      <ChartContainer
-        config={chartConfig}
-        className="h-[250px] min-w-full select-none"
-      >
-        <AreaChart
-          accessibilityLayer
-          data={chartData}
-          margin={{
-            left: 12,
-            right: 12,
-          }}
+    <div className="size-full relative">
+      <div className="absolute inset-0 overflow-clip flex">
+        <ChartContainer
+          config={chartConfig}
+          className="flex-1 overflow-auto h-[250px]"
         >
-          <CartesianGrid vertical={false} />
-          <XAxis
-            dataKey="month"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            tickFormatter={(value) => value.slice(0, 3)}
-          />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <defs>
-            <linearGradient id="fillSales" x1="0" y1="0" x2="0" y2="1">
-              <stop
-                offset="5%"
-                stopColor="var(--color-sales)"
-                stopOpacity={0.8}
-              />
-              <stop
-                offset="95%"
-                stopColor="var(--color-sales)"
-                stopOpacity={0.1}
-              />
-            </linearGradient>
-          </defs>
-          <Area
-            dataKey="sales"
-            type="natural"
-            fill="url(#fillSales)"
-            fillOpacity={0.4}
-            stroke="var(--color-sales)"
-            stackId="a"
-            dot={{ fill: "var(--color-sales)" }}
-          />
-        </AreaChart>
-      </ChartContainer>
-    </>
+          <AreaChart
+            accessibilityLayer
+            data={chartData}
+            margin={{
+              left: 12,
+              right: 12,
+            }}
+          >
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => value.slice(0, 3)}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <defs>
+              <linearGradient id="fillSales" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="5%"
+                  stopColor="var(--color-sales)"
+                  stopOpacity={0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--color-sales)"
+                  stopOpacity={0.1}
+                />
+              </linearGradient>
+            </defs>
+            <Area
+              dataKey="sales"
+              type="natural"
+              fill="url(#fillSales)"
+              fillOpacity={0.4}
+              stroke="var(--color-sales)"
+              stackId="a"
+              dot={{ fill: "var(--color-sales)" }}
+            />
+          </AreaChart>
+        </ChartContainer>
+      </div>
+    </div>
   );
 }

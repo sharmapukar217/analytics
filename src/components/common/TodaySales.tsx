@@ -75,9 +75,8 @@ export function TodaySales() {
       <CardContent className="px-4">
         <Tabs defaultValue="sales-amount">
           <TabsList className="w-full">
-            <TabsTrigger value="sales-amount">Sales Amount</TabsTrigger>
-
-            <TabsTrigger value="sales-number">Sales (in price)</TabsTrigger>
+            <TabsTrigger value="sales-number">Sales (Nrs.)</TabsTrigger>
+            <TabsTrigger value="sales-amount">Orders</TabsTrigger>
           </TabsList>
 
           <TabsContent value="sales-amount">
@@ -120,7 +119,7 @@ export function TodaySales() {
                                 y={(viewBox.cy || 0) / 1.25 + 16}
                                 className="fill-muted-foreground font-medium"
                               >
-                                Total Sales
+                                Total Orders
                               </tspan>
                             </text>
                           );

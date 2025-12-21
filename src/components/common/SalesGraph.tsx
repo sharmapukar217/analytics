@@ -63,7 +63,7 @@ export function SalesGraph() {
         </div>
       </CardHeader>
 
-      <CardContent className="px-4 min-h-[250px]">
+      <CardContent className="!p-0 min-h-[250px]">
         <React.Activity mode={activeTab === "all" ? "visible" : "hidden"}>
           <AllSalesGraph />
         </React.Activity>

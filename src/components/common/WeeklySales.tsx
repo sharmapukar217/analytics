@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ChartLineIcon, RefreshCcwIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bar, BarChart, LabelList, Rectangle, XAxis } from "recharts";
 import {
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/chart";
 import { useGetAnalytics } from "@/hooks/useAnalytics";
 import React from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 
 const chartConfig: ChartConfig = {
   sales: { label: "Sales" },
@@ -25,6 +25,36 @@ const chartConfig: ChartConfig = {
 };
 
 export default function WeeklySales() {
+  const { data, refetch, isRefetching } = useGetAnalytics();
+
+  return (
+    <Tabs defaultValue="sales">
+      <Card className="py-4 select-none h-fit">
+        <CardHeader className="px-4">
+          <CardTitle className="flex items-center gap-2">
+            <h1>Weekly Report</h1>
+          </CardTitle>
+          <TabsList className="w-full mt-1">
+            <TabsTrigger value="sales">Sales ( Nrs. )</TabsTrigger>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
+          </TabsList>
+        </CardHeader>
+
+        <CardContent className="px-4">
+          <TabsContent value="sales">
+            <SalesChart />
+          </TabsContent>
+
+          <TabsContent value="orders">
+            <SalesChart />
+          </TabsContent>
+        </CardContent>
+      </Card>
+    </Tabs>
+  );
+}
+
+function SalesChart() {
   const { data, refetch, isRefetching } = useGetAnalytics();
 
   const chartData = React.useMemo(() => {
@@ -68,60 +98,41 @@ export default function WeeklySales() {
   }, [chartData]);
 
   return (
-    <Card className="py-4 select-none h-fit">
-      <CardHeader className="px-4">
-        <div className="flex justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <ChartLineIcon className="text-primary size-4" />
-            <h1>Sales of the week</h1>
-          </CardTitle>
-          <Button
-            size="icon"
-            variant="ghost"
-            disabled={isRefetching}
-            onClick={() => refetch()}
-          >
-            <RefreshCcwIcon className={isRefetching ? "animate-spin" : ""} />
-          </Button>
-        </div>
-      </CardHeader>
+    <ChartContainer config={chartConfig}>
+      <BarChart accessibilityLayer data={chartData} margin={{ top: 24 }}>
+        <XAxis
+          dataKey="day"
+          tickLine={false}
+          tickMargin={10}
+          axisLine={false}
+          tickFormatter={(value) => value.slice(0, 3)}
+        />
 
-      <CardContent className="px-4">
-        <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData}>
-            <XAxis
-              dataKey="day"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent labelFormatter={(value) => value} />}
+        />
+
+        <Bar
+          radius={8}
+          dataKey="sales"
+          activeIndex={activeIndex}
+          activeBar={({ ...props }) => (
+            <Rectangle
+              {...props}
+              strokeDasharray={4}
+              strokeDashoffset={4}
+              fill="var(--color-primary)"
             />
-
-            <ChartTooltip
-              cursor={false}
-              content={
-                <ChartTooltipContent labelFormatter={(value) => value} />
-              }
-            />
-
-            <Bar
-              radius={8}
-              dataKey="sales"
-              activeIndex={activeIndex}
-              activeBar={({ ...props }) => (
-                <Rectangle
-                  {...props}
-                  strokeDasharray={4}
-                  strokeDashoffset={4}
-                  fill="var(--color-primary)"
-                />
-              )}
-            >
-              <LabelList position="top" className="fill-foreground" />
-            </Bar>
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+          )}
+        >
+          <LabelList position="top" className="fill-foreground" />
+        </Bar>
+      </BarChart>
+    </ChartContainer>
   );
+}
+
+function OrdersChart() {
+  return null;
 }

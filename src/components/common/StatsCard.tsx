@@ -20,7 +20,7 @@ import { AnalyticsDateRangePicker } from "../analytics/AnalyticsDateRangePicker"
 type StatsCardProps = {
   title: string;
   icon: LucideIcon;
-  value: number;
+  value: string | number;
   previousValue?: number;
   chartConfig: any;
   chartData: Record<string, any>[];
@@ -42,7 +42,8 @@ export function StatsCard({
   classNames,
 }: StatsCardProps) {
   const changedValue = React.useMemo(() => {
-    if (!previousValue) return null;
+    if (!previousValue || typeof value !== "number") return null;
+
     let delta = value / previousValue;
     if (previousValue > value) delta = -delta;
     return Number(delta * 100).toFixed(2);
@@ -100,9 +101,9 @@ export function StatsCard({
         </div>
       </CardHeader>
 
-      <CardContent className="grid grid-cols-2 px-4">
-        <div className="flex flex-col my-auto">
-          <div className="inline-flex items-center gap-2">
+      <CardContent className="grid px-4">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
             <strong className="text-2xl">{value}</strong>
 
             {changedValue ? (

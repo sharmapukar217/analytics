@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { formatCurrency } from "@/lib/utils";
 
 const invoices = [
   {
@@ -91,7 +92,7 @@ export function TopSellingProducts() {
     let sold = 0;
     let amount = 0;
 
-    channelData.forEach((p) => {
+    channelData?.forEach((p) => {
       sold += p.totalQuantitySold;
       amount += p.totalSales;
     });
@@ -124,7 +125,7 @@ export function TopSellingProducts() {
       </CardHeader>
       <CardContent className="border-t p-0 h-full flex">
         <Table className="h-full flex-1">
-          <TableHeader className="sticky top-0 bg-card border-b z-100">
+          <TableHeader className="sticky top-0 bg-card border-b z-10">
             <TableRow>
               <TableHead className="w-[10px] border-r text-center">#</TableHead>
               <TableHead className="max-w-[300px] text-center overflow-hidden text-ellipsis border-r">
@@ -139,7 +140,7 @@ export function TopSellingProducts() {
             </TableRow>
           </TableHeader>
           <TableBody className="h-full">
-            {channelData.map((productVariant) => (
+            {channelData?.map((productVariant) => (
               <TableRow key={productVariant.productVariantId}>
                 <TableCell className="font-medium border-r text-center">
                   {productVariant.productVariantId}
@@ -151,7 +152,7 @@ export function TopSellingProducts() {
                   {productVariant.totalQuantitySold}
                 </TableCell>
                 <TableCell className="text-center max-w-[150px] overflow-hidden text-ellipsis">
-                  {productVariant.totalSales}
+                  {formatCurrency(productVariant.totalSales)}
                 </TableCell>
               </TableRow>
             ))}
@@ -164,7 +165,8 @@ export function TopSellingProducts() {
                 {totalSold}
               </TableCell>
               <TableCell className="text-center max-w-[150px] overflow-hidden text-ellipsis">
-                {totalAmount}
+                {/*Rs. {totalAmount.toFixed(2)}*/}
+                {formatCurrency(totalAmount)}
               </TableCell>
             </TableRow>
           </TableFooter>
