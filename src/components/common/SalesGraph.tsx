@@ -39,37 +39,29 @@ export function SalesGraph() {
         <div className="flex">
           {tabOptions.map((tabOption) => {
             return (
-              <Button
+              <div
                 key={tabOption.key}
-                onClick={() => setActiveTab(tabOption.key)}
-                variant={activeTab === tabOption.key ? "default" : "secondary"}
-                data-active={tabOption.key === activeTab ? true : undefined}
-                className="min-w-16 !h-full rounded-none relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
+                className="min-w-16 !h-full rounded-none relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6 text-foreground"
               >
-                <span
-                  className={cn(
-                    "text-primary-foreground/85 text-xs capitalize",
-                    [activeTab !== tabOption.key && "text-foreground/85"],
-                  )}
-                >
+                <span className={cn("text-foreground/85 text-xs capitalize")}>
                   {tabOption.label}
                 </span>
                 <span className="text-lg leading-none font-bold sm:text-3xl">
                   {tabOption.value}
                 </span>
-              </Button>
+              </div>
             );
           })}
         </div>
       </CardHeader>
 
       <CardContent className="!p-0 min-h-[250px]">
-        <React.Activity mode={activeTab === "all" ? "visible" : "hidden"}>
-          <AllSalesGraph />
-        </React.Activity>
-        <React.Activity mode={activeTab === "completed" ? "visible" : "hidden"}>
-          <CompletedOnlySalesGraph />
-        </React.Activity>
+        {/*<React.Activity mode={activeTab === "all" ? "visible" : "hidden"}>*/}
+        <AllSalesGraph />
+        {/*</React.Activity>*/}
+        {/*<React.Activity mode={activeTab === "completed" ? "visible" : "hidden"}>*/}
+        {/*<CompletedOnlySalesGraph />*/}
+        {/*</React.Activity>*/}
       </CardContent>
     </Card>
   );

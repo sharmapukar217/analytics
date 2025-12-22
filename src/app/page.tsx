@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { toPng } from "html-to-image";
 import {
   BadgeDollarSignIcon,
   UsersIcon,
@@ -10,7 +11,7 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useGetAnalytics } from "@/hooks/useAnalytics";
+import { useDateRange, useGetAnalytics } from "@/hooks/useAnalytics";
 import { AnalyticsDateRangePicker } from "@/components/analytics/AnalyticsDateRangePicker";
 import { Progress } from "@/components/ui/progress";
 import { TodaySales } from "@/components/common/TodaySales";
@@ -20,13 +21,62 @@ import { SalesGraph } from "@/components/common/SalesGraph";
 import { TopSellingProducts } from "@/components/common/TopSellingProducts";
 import { MonthlyReport } from "@/components/common/MonthlyReport";
 import { formatCurrency } from "@/lib/utils";
+import { ChannelWiseAnalytics } from "@/components/common/ChannelWiseAnalytics";
+import { Button } from "@/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { DateRange } from "react-day-picker";
+import { Tabs } from "radix-ui";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
+function getDateRangeLabel({ date }: { date: DateRange | undefined }) {
+  if (!date?.from) return "sales_report";
+  if (!date.to) return date.from.toLocaleDateString();
+  return `${date.from.toLocaleDateString()}_to_${date.to.toLocaleDateString()}`;
+}
 
 function DashboardHeader() {
+  const { dateRange } = useDateRange();
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const { mutate, error, reset, isPending } = useMutation({
+    networkMode: "always",
+    mutationKey: ["export-to-png"],
+    async mutationFn() {
+      const mainContent = document.getElementById("main-content");
+      if (!mainContent) throw new Error("Main content not found!");
+
+      const link = Object.assign(document.createElement("a"), {
+        href: await toPng(mainContent),
+        download: getDateRangeLabel({ date: dateRange }),
+      });
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+  });
+
+  React.useEffect(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (error) timeoutRef.current = setTimeout(() => reset(), 3000);
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [error]);
+
   return (
-    <header className="p-4 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-      <div />
-      <div className="inline-flex items-center gap-4">
+    <header className="p-4 flex flex-col sm:flex-row gap-4 items-center">
+      <div className="ms-auto inline-flex items-center gap-4">
         <AnalyticsDateRangePicker />
+        <Button
+          size="sm"
+          disabled={isPending}
+          variant={error ? "destructive" : "outline"}
+          onClick={() => mutate()}
+        >
+          {isPending ? "Exporting..." : error ? "Retry" : "Export"}
+        </Button>
       </div>
     </header>
   );
@@ -68,376 +118,464 @@ export default function AnalyticsPage() {
     <div className="container pb-8">
       <DashboardHeader />
 
-      <div className="grid gap-2">
-        <strong>Today&apos;s Sales</strong>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-          <div className="flex flex-col gap-4">
-            <Card className="w-full h-fit gap-0">
-              <CardHeader>
-                <div className="flex justify-between">
-                  <div className="grid">
-                    <h1 className="text-sm font-medium text-muted-foreground">
-                      Sales Overview
-                    </h1>
-                    <h2 className="text-xl font-semibold">
-                      Rs. {data?.todaysSales.total || 0}
-                    </h2>
-                  </div>
-                  <h3 className="text-xs font-semibold"></h3>
-                </div>
-              </CardHeader>
-              <CardContent className="grid">
-                <div className="flex items-center justify-between">
-                  <div className="grid gap-4">
-                    <div className="inline-flex items-center gap-2">
-                      <div className="flex items-center justify-center size-9 bg-green-500 text-white rounded-lg">
-                        <CheckCheckIcon className="size-5" />
-                      </div>
-                      <div className="grid">
-                        <h2 className="text-sm font-semibold">Delivered</h2>
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-medium">
-                            {data?.todaysSales.orders.completed}
-                            {/*<span className="text-green-500">(+62.2%)</span>*/}
-                          </h3>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+      <main id="main-content">
+        <div className="grid gap-2">
+          <strong>Today&apos;s Sales</strong>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+            <div className="flex flex-col gap-4">
+              <Tabs.Root defaultValue="sales">
+                <Card className="w-full h-fit gap-0 p-0 overflow-clip">
+                  <Tabs.List className="grid grid-cols-2 divide-x border-b">
 
-                  <div className="relative flex flex-col items-center gap-1 h-full">
-                    <div className="w-0.5 h-4 bg-muted rounded-full" />
-                    <div className="size-8 shrink-0 flex items-center justify-center bg-muted rounded-full text-xs font-medium text-muted-foreground">
-                      Vs
-                    </div>
-                    <div className="w-0.5 h-4 bg-muted rounded-full" />
-                  </div>
 
-                  <div className="grid gap-4">
-                    <div className="inline-flex items-center gap-2">
-                      <div className="flex items-center justify-center size-9 bg-destructive text-white rounded-lg">
-                        <XCircleIcon className="size-5" />
-                      </div>
+                     <Tabs.Trigger
+                      value="sales"
+                      className="p-4 grid text-left group data-[state=active]:bg-primary/10"
+                    >
+                      <h1 className="text-sm font-medium text-muted-foreground group-data-[state=active]:text-primary/85">
+                        Sales Overview
+                      </h1>
+                      <h2 className="text-xl font-semibold group-data-[state=active]:text-primary">
+                                                {formatCurrency(data?.todaysSales.total)}
 
-                      <div className="grid">
-                        <h2 className="text-sm font-semibold">Cancelled</h2>
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-medium">
-                            {data?.todaysSales.orders.cancelled}
-                          </h3>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <TodaySales />
-          </div>
-
-          <div className="grid gap-4 h-fit">
-            <Card className="w-full gap-0 h-fit md">
-              <CardHeader>
-                <h1 className="text-lg font-medium">Statistics</h1>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid">
-                  <div className="flex items-center justify-between">
-                    <h1 className="font-medium text-sm">Pending Orders</h1>
-                  </div>
-
-                  <div className="mt-2 space-y-0.5">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-muted-foreground font-medium text-xs">
-                        {totalPendingOrdersToday} pending order(s) out of{" "}
-                        {totalOrdersToday} total.
                       </h2>
-                      <h2 className="text-muted-foreground text-xs">
-                        {getPercentage(
+                    </Tabs.Trigger>
+
+                    <Tabs.Trigger
+                      value="payments"
+                      className="p-4 grid text-left group data-[state=active]:bg-primary/10"
+                    >
+                      <h1 className="text-sm font-medium text-muted-foreground group-data-[state=active]:text-primary/85">
+                        Payments Overview
+                      </h1>
+                      <h2 className="text-xl font-semibold group-data-[state=active]:text-primary">
+                        {formatCurrency(
+                          (data?.payments.cod || 0) +
+                            (data?.payments.khalti || 0),
+                        )}
+                      </h2>
+                    </Tabs.Trigger>
+                  </Tabs.List>
+                  <CardContent className="py-0 grid relative">
+                    <Tabs.Content
+                      value="sales"
+                      className="relative grid grid-cols-2 py-8"
+                    >
+                      <div className="grid gap-4">
+                        <div className="inline-flex items-center gap-2">
+                          {/*<div className="flex items-center justify-center size-9 bg-green-500 text-white rounded-lg">
+                            <CheckCheckIcon className="size-5" />
+                          </div>*/}
+
+                          <img src="/delivered.png" className="h-9 object-fit" />
+
+                          <div className="grid">
+                            <h2 className="text-sm font-semibold">Delivered</h2>
+                            <div className="space-y-1">
+                              <h3 className="text-sm font-medium">
+                                {data?.todaysSales.orders.completed}
+                              </h3>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="absolute inset-y-0 flex flex-col gap-1 items-center justify-center left-1/2 -translate-x-1/2">
+                        <div className="w-0.5 h-full bg-muted rounded-full" />
+                        <div className="size-8 shrink-0 flex items-center justify-center bg-muted rounded-full text-xs font-medium text-muted-foreground">
+                          Vs
+                        </div>
+                        <div className="w-0.5 h-full bg-muted rounded-full" />
+                      </div>
+
+                      <div className="grid gap-4 px-4 ps-8">
+                        <div className="inline-flex items-center gap-2">
+                                                   <img src="/cancelled.png" className="h-9 object-fit" />
+
+
+                          <div className="grid">
+                            <h2 className="text-sm font-semibold">Cancelled</h2>
+                            <div className="space-y-1">
+                              <h3 className="text-sm font-medium">
+                                {data?.todaysSales.orders.cancelled}
+                              </h3>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Tabs.Content>
+
+                    <Tabs.Content
+                      value="payments"
+                      className="relative grid grid-cols-2 py-8"
+                    >
+                      <div className="grid gap-4 pe-8">
+                        <div className="inline-flex items-center gap-2 pe-8">
+                          <img src="/cod.png" className="h-9 object-fit" />
+
+                          <div className="grid">
+                            <h2 className="text-sm font-semibold">COD</h2>
+                            <div className="space-y-1">
+                              <Tooltip>
+                                <TooltipTrigger>
+                                <h3 className="text-sm font-medium overflow-clip text-ellipsis max-w-[12ch]">
+                                  {formatCurrency(data?.payments.cod)}
+                                </h3>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                  {formatCurrency(data?.payments.cod)}
+                              </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="absolute inset-y-0 flex flex-col gap-1 items-center justify-center left-1/2 -translate-x-1/2">
+                        <div className="w-0.5 h-full bg-muted rounded-full" />
+                        <div className="size-8 shrink-0 flex items-center justify-center bg-muted rounded-full text-xs font-medium text-muted-foreground">
+                          Vs
+                        </div>
+                        <div className="w-0.5 h-full bg-muted rounded-full" />
+                      </div>
+
+                      <div className="grid gap-4 px-4 ps-8">
+                        <div className="inline-flex items-center gap-2">
+                          {/*<div className="flex items-center justify-center size-9 bg-destructive text-white rounded-lg">*/}
+                            {/*<XCircleIcon className="size-5" />*/}
+                          <img src="/khalti.webp" className="size-8" />
+                          {/*</div>*/}
+
+                          <div className="grid">
+                            <h2 className="text-sm font-semibold">Khalti</h2>
+                            <div className="space-y-1">
+                                <Tooltip>
+                                <TooltipTrigger>
+                                <h3 className="text-sm font-medium overflow-clip text-ellipsis max-w-[12ch]">
+                                  {formatCurrency(data?.payments.khalti)}
+                                </h3>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                  {formatCurrency(data?.payments.khalti)}
+                              </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Tabs.Content>
+                  </CardContent>
+                </Card>
+              </Tabs.Root>
+
+              <TodaySales />
+            </div>
+
+            <div className="grid gap-4 h-fit">
+              <Card className="w-full gap-0 h-fit md">
+                <CardHeader>
+                  <h1 className="text-lg font-medium">Statistics</h1>
+                </CardHeader>
+                <CardContent className="grid gap-4">
+                  <div className="grid">
+                    <div className="flex items-center justify-between">
+                      <h1 className="font-medium text-sm">Pending Orders</h1>
+                    </div>
+
+                    <div className="mt-2 space-y-0.5">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-muted-foreground font-medium text-xs">
+                          {totalPendingOrdersToday} pending order(s) out of{" "}
+                          {totalOrdersToday} total.
+                        </h2>
+                        <h2 className="text-muted-foreground text-xs">
+                          {getPercentage(
+                            totalPendingOrdersToday,
+                            totalOrdersToday,
+                          )}
+                          %
+                        </h2>
+                      </div>
+                      <Progress
+                        value={getPercentage(
                           totalPendingOrdersToday,
                           totalOrdersToday,
                         )}
-                        %
-                      </h2>
+                        indicatorClassName="bg-muted-foreground"
+                      />
                     </div>
-                    <Progress
-                      value={getPercentage(
-                        totalPendingOrdersToday,
-                        totalOrdersToday,
-                      )}
-                      indicatorClassName="bg-muted-foreground"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid">
-                  <div className="flex items-center justify-between">
-                    <h1 className="font-medium text-sm">Orders in delivery</h1>
                   </div>
 
-                  <div className="mt-2 space-y-0.5">
+                  <div className="grid">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-muted-foreground font-medium text-xs">
-                        {totalActiveOrdersToday} order(s) in delivery out of{" "}
-                        {totalOrdersToday} total.
-                      </h2>
-                      <h2 className="text-primary text-xs">
-                        {getPercentage(
+                      <h1 className="font-medium text-sm">
+                        Orders in delivery
+                      </h1>
+                    </div>
+
+                    <div className="mt-2 space-y-0.5">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-muted-foreground font-medium text-xs">
+                          {totalActiveOrdersToday} order(s) in delivery out of{" "}
+                          {totalOrdersToday} total.
+                        </h2>
+                        <h2 className="text-primary text-xs">
+                          {getPercentage(
+                            totalActiveOrdersToday,
+                            totalOrdersToday,
+                          )}
+                          %
+                        </h2>
+                      </div>
+                      <Progress
+                        value={getPercentage(
                           totalActiveOrdersToday,
                           totalOrdersToday,
                         )}
-                        %
-                      </h2>
+                      />
                     </div>
-                    <Progress
-                      value={getPercentage(
-                        totalActiveOrdersToday,
-                        totalOrdersToday,
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid">
-                  <div className="flex items-center justify-between">
-                    <h1 className="font-medium text-sm">Delivered Orders</h1>
                   </div>
 
-                  <div className="mt-2 space-y-0.5">
+                  <div className="grid">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-muted-foreground font-medium text-xs">
-                        {totalCompletedOrdersToday} completed order(s) out of{" "}
-                        {totalOrdersToday} total.
-                      </h2>
-                      <h2 className="text-green-500 text-xs">
-                        {getPercentage(
+                      <h1 className="font-medium text-sm">Delivered Orders</h1>
+                    </div>
+
+                    <div className="mt-2 space-y-0.5">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-muted-foreground font-medium text-xs">
+                          {totalCompletedOrdersToday} completed order(s) out of{" "}
+                          {totalOrdersToday} total.
+                        </h2>
+                        <h2 className="text-green-500 text-xs">
+                          {getPercentage(
+                            totalCompletedOrdersToday,
+                            totalOrdersToday,
+                          )}
+                          %
+                        </h2>
+                      </div>
+                      <Progress
+                        value={getPercentage(
                           totalCompletedOrdersToday,
                           totalOrdersToday,
                         )}
-                        %
-                      </h2>
+                        indicatorClassName="bg-green-500"
+                      />
                     </div>
-                    <Progress
-                      value={getPercentage(
-                        totalCompletedOrdersToday,
-                        totalOrdersToday,
-                      )}
-                      indicatorClassName="bg-green-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid">
-                  <div className="flex items-center justify-between">
-                    <h1 className="font-medium text-sm">Cancelled Orders</h1>
                   </div>
 
-                  <div className="mt-2 space-y-0.5">
+                  <div className="grid">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-muted-foreground font-medium text-xs">
-                        {totalCancelledOrdersToday} cancelled order(s) out of{" "}
-                        {totalOrdersToday} total.
-                      </h2>
-                      <h2 className="text-destructive text-xs">
-                        {getPercentage(
+                      <h1 className="font-medium text-sm">Cancelled Orders</h1>
+                    </div>
+
+                    <div className="mt-2 space-y-0.5">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-muted-foreground font-medium text-xs">
+                          {totalCancelledOrdersToday} cancelled order(s) out of{" "}
+                          {totalOrdersToday} total.
+                        </h2>
+                        <h2 className="text-destructive text-xs">
+                          {getPercentage(
+                            totalCancelledOrdersToday,
+                            totalOrdersToday,
+                          )}
+                          %
+                        </h2>
+                      </div>
+                      <Progress
+                        value={getPercentage(
                           totalCancelledOrdersToday,
                           totalOrdersToday,
                         )}
-                        %
-                      </h2>
+                        indicatorClassName="bg-destructive"
+                      />
                     </div>
-                    <Progress
-                      value={getPercentage(
-                        totalCancelledOrdersToday,
-                        totalOrdersToday,
-                      )}
-                      indicatorClassName="bg-destructive"
-                    />
                   </div>
+                </CardContent>
+              </Card>
+
+              <div className="grid gap-2">
+                <strong>Today&apos;s Orders</strong>
+                <div className="h-fit grid grid-cols-2 gap-4">
+                  <Card>
+                    <CardContent className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center rounded-md justify-center size-9 bg-primary/10 text-primary">
+                          <TruckIcon />
+                        </div>
+                        <h2 className="text-lg font-medium">
+                          {totalOrdersToday}
+                        </h2>
+                      </div>
+
+                      <div className="grid">
+                        <h3 className="text-sm font-semibold">Total Orders</h3>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="h-fit">
+                    <CardContent className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center rounded-md justify-center size-9 bg-muted text-muted-foreground">
+                          <ClockIcon />
+                        </div>
+                        <h2 className="text-lg font-medium">
+                          {data?.todaysSales.orders.pending}
+                        </h2>
+                      </div>
+
+                      <div className="grid">
+                        <h3 className="text-sm font-semibold">
+                          Pending Orders
+                        </h3>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="h-fit">
+                    <CardContent className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center rounded-md justify-center size-9 bg-destructive/10 text-destructive">
+                          <ClockIcon />
+                        </div>
+                        <h2 className="text-lg font-medium">
+                          {data?.todaysSales.orders.cancelled}
+                        </h2>
+                      </div>
+
+                      <div className="grid">
+                        <h3 className="text-sm font-semibold">
+                          Cancelled Orders
+                        </h3>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="h-fit">
+                    <CardContent className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center rounded-md justify-center size-9 bg-green-500/10 text-green-500">
+                          <CheckCheckIcon />
+                        </div>
+                        <h2 className="text-lg font-medium">
+                          {data?.todaysSales.orders.completed}
+                        </h2>
+                      </div>
+
+                      <div className="grid">
+                        <h3 className="text-sm font-semibold">
+                          Delivered Orders
+                        </h3>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid gap-2">
-              <strong>Today&apos;s Orders</strong>
-              <div className="h-fit grid grid-cols-2 gap-4">
-                <Card>
-                  <CardContent className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center rounded-md justify-center size-9 bg-primary/10 text-primary">
-                        <TruckIcon />
-                      </div>
-                      <h2 className="text-lg font-medium">
-                        {totalOrdersToday}
-                      </h2>
-                    </div>
-
-                    <div className="grid">
-                      <h3 className="text-sm font-semibold">Total Orders</h3>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="h-fit">
-                  <CardContent className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center rounded-md justify-center size-9 bg-muted text-muted-foreground">
-                        <ClockIcon />
-                      </div>
-                      <h2 className="text-lg font-medium">
-                        {data?.todaysSales.orders.pending}
-                      </h2>
-                    </div>
-
-                    <div className="grid">
-                      <h3 className="text-sm font-semibold">Pending Orders</h3>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="h-fit">
-                  <CardContent className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center rounded-md justify-center size-9 bg-destructive/10 text-destructive">
-                        <ClockIcon />
-                      </div>
-                      <h2 className="text-lg font-medium">
-                        {data?.todaysSales.orders.cancelled}
-                      </h2>
-                    </div>
-
-                    <div className="grid">
-                      <h3 className="text-sm font-semibold">
-                        Cancelled Orders
-                      </h3>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="h-fit">
-                  <CardContent className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center rounded-md justify-center size-9 bg-green-500/10 text-green-500">
-                        <CheckCheckIcon />
-                      </div>
-                      <h2 className="text-lg font-medium">
-                        {data?.todaysSales.orders.completed}
-                      </h2>
-                    </div>
-
-                    <div className="grid">
-                      <h3 className="text-sm font-semibold">
-                        Delivered Orders
-                      </h3>
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
             </div>
-          </div>
 
-          <div className="flex-1 grid gap-4">
-            <TopSellingProducts />
-            <WeeklySales />
+            <div className="flex-1 grid gap-4">
+              <TopSellingProducts />
+              <WeeklySales />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-8 grid gap-4">
-        <strong>Overall Sales Report</strong>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 select-none">
-          <StatsCard
-            title="Total Users"
-            icon={UsersIcon}
-            value={data?.totalUsers || 0}
-            previousValue={0}
-            chartData={data?.usersByMonth || []}
-            chartConfig={{
-              value: {
-                label: "Users",
-                color: "var(--chart-2)",
-              },
-            }}
-            dataKey="value"
-            classNames={{
-              badgeClassName: "bg-green-500/10 text-green-500",
-            }}
-          />
+        <div className="mt-8 grid gap-4">
+          <strong>Overall Sales Report</strong>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 select-none">
+            <StatsCard
+              title="Total Users"
+              icon={UsersIcon}
+              value={data?.totalUsers || 0}
+              previousValue={0}
+              chartData={data?.usersByMonth || []}
+              chartConfig={{
+                value: {
+                  label: "Users",
+                  color: "var(--chart-2)",
+                },
+              }}
+              dataKey="value"
+              classNames={{
+                badgeClassName: "bg-green-500/10 text-green-500",
+              }}
+            />
 
-          <StatsCard
-            title="Total Orders"
-            icon={UsersIcon}
-            value={
-              data?.ordersByMonth.reduce(
-                (current, order) => current + order.value,
-                0,
-              ) || 0
-            }
-            previousValue={0}
-            chartData={data?.ordersByMonth || []}
-            chartConfig={{
-              value: {
-                label: "Orders",
-                color: "var(--chart-2)",
-              },
-            }}
-            dataKey="value"
-            classNames={{
-              badgeClassName: "bg-green-500/10 text-green-500",
-            }}
-          />
+            <StatsCard
+              title="Total Orders"
+              icon={UsersIcon}
+              value={
+                data?.ordersByMonth.reduce(
+                  (current, order) => current + order.value,
+                  0,
+                ) || 0
+              }
+              previousValue={0}
+              chartData={data?.ordersByMonth || []}
+              chartConfig={{
+                value: {
+                  label: "Orders",
+                  color: "var(--chart-2)",
+                },
+              }}
+              dataKey="value"
+              classNames={{
+                badgeClassName: "bg-green-500/10 text-green-500",
+              }}
+            />
 
-          <StatsCard
-            title="Total Sales"
-            icon={BadgeDollarSignIcon}
-            value={formatCurrency(data?.totalSales)}
-            previousValue={0}
-            chartData={data?.salesByMonth || []}
-            chartConfig={{
-              value: {
-                label: "Sales",
-                color: "var(--chart-1)",
-              },
-            }}
-            dataKey="value"
-            classNames={{
-              badgeClassName: "bg-red-500/10 text-red-500",
-            }}
-          />
+            <StatsCard
+              title="Total Sales"
+              icon={BadgeDollarSignIcon}
+              value={formatCurrency(data?.totalSales)}
+              previousValue={0}
+              chartData={data?.salesByMonth || []}
+              chartConfig={{
+                value: {
+                  label: "Sales",
+                  color: "var(--chart-1)",
+                },
+              }}
+              dataKey="value"
+              classNames={{
+                badgeClassName: "bg-red-500/10 text-red-500",
+              }}
+            />
 
-          {/* TODO: Replace with actual analytics data */}
-          {/*<StatsCard
-               title="Total Reviews"
-               icon={SmileIcon}
-               value={0}
-               previousValue={10}
-               chartData={[
-                 { month: "January", reviews: 2 },
-                 { month: "February", reviews: 7 },
-                 { month: "March", reviews: 3 },
-                 { month: "April", reviews: 0 },
-                 { month: "May", reviews: 4 },
-                 { month: "June", reviews: 7 },
-               ]}
-               chartConfig={{
-                 reviews: {
-                   label: "Reviews",
-                   color: "var(--chart-2)",
-                 },
-               }}
-               dataKey="reviews"
-               classNames={{
-                 badgeClassName: "bg-green-500/10 text-green-500",
-               }}
-             />*/}
+            {/* TODO: Replace with actual analytics data */}
+            {/*<StatsCard
+                 title="Total Reviews"
+                 icon={SmileIcon}
+                 value={0}
+                 previousValue={10}
+                 chartData={[
+                   { month: "January", reviews: 2 },
+                   { month: "February", reviews: 7 },
+                   { month: "March", reviews: 3 },
+                   { month: "April", reviews: 0 },
+                   { month: "May", reviews: 4 },
+                   { month: "June", reviews: 7 },
+                 ]}
+                 chartConfig={{
+                   reviews: {
+                     label: "Reviews",
+                     color: "var(--chart-2)",
+                   },
+                 }}
+                 dataKey="reviews"
+                 classNames={{
+                   badgeClassName: "bg-green-500/10 text-green-500",
+                 }}
+               />*/}
+          </div>
+
+          <SalesGraph />
         </div>
 
-        <SalesGraph />
-      </div>
-
-      <div className="grid md:grid-cols-2 mt-4 gap-4">
-        <div className="h-fit grid grid-cols-2 gap-4">
+        <div className="h-fit grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
           <Card>
             <CardContent className="space-y-2">
               <div className="flex items-center gap-2">
@@ -502,10 +640,17 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
         </div>
-        <div>
-          <MonthlyReport />
+
+        <div className="grid md:grid-cols-2 mt-4 gap-4">
+          <div>
+            <ChannelWiseAnalytics />
+          </div>
+
+          <div>
+            <MonthlyReport />
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

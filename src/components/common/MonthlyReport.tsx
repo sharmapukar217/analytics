@@ -20,7 +20,6 @@ export function MonthlyReport() {
     <Tabs defaultValue="sales">
       <Card className="py-4 select-none h-fit">
         <CardHeader className="px-4">
-
           <CardTitle className="flex items-center gap-2">
             <h1>Monthly Report</h1>
           </CardTitle>
@@ -123,6 +122,7 @@ function SalesByMonth() {
             <LabelList
               position="top"
               className="fill-foreground"
+              fontSize={7}
               formatter={(value: number) => formatCurrency(value)}
             />
           </Bar>
@@ -207,7 +207,11 @@ function OrdersByMonth() {
               />
             )}
           >
-            <LabelList position="top" className="fill-foreground" />
+            <LabelList
+              position="top"
+              fontSize={7}
+              className="fill-foreground"
+            />
           </Bar>
         </BarChart>
       </ChartContainer>

@@ -8,17 +8,17 @@ import { useGetAnalytics } from "@/hooks/useAnalytics";
 import React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
-const chartData = [
-  { month: "January", sales: 186 },
-  { month: "February", sales: 305 },
-  { month: "March", sales: 237 },
-  { month: "April", sales: 73 },
-  { month: "May", sales: 209 },
-  { month: "June", sales: 214 },
-  { month: "July", sales: 214 },
-  { month: "August", sales: 214 },
-  { month: "September", sales: 4 },
-];
+// const chartData = [
+//   { month: "January", sales: 186 },
+//   { month: "February", sales: 305 },
+//   { month: "March", sales: 237 },
+//   { month: "April", sales: 73 },
+//   { month: "May", sales: 209 },
+//   { month: "June", sales: 214 },
+//   { month: "July", sales: 214 },
+//   { month: "August", sales: 214 },
+//   { month: "September", sales: 4 },
+// ];
 const chartConfig = {
   sales: {
     label: "Sales",
@@ -28,6 +28,29 @@ const chartConfig = {
 
 export function CompletedOnlySalesGraph() {
   const { data } = useGetAnalytics();
+
+  const chartData = React.useMemo(() => {
+    if (!data?.dailyOrderStats?.length) return [];
+
+    const monthlyMap = new Map<string, number>();
+
+    data.dailyOrderStats.forEach((info) => {
+      const monthKey = new Date(info.date).toLocaleString("en-US", {
+        month: "short",
+        year: "numeric",
+      });
+
+      monthlyMap.set(
+        monthKey,
+        (monthlyMap.get(monthKey) ?? 0) + info.completed,
+      );
+    });
+
+    return Array.from(monthlyMap, ([month, completed]) => ({
+      month,
+      completed,
+    }));
+  }, [data]);
 
   return (
     <div className="size-full relative">

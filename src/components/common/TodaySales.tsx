@@ -13,6 +13,7 @@ import { Label, Pie, PieChart } from "recharts";
 import { useGetAnalytics } from "@/hooks/useAnalytics";
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import { formatCurrency } from "@/lib/utils";
 
 const chartConfig: ChartConfig = {
   count: { label: "Orders" },
@@ -165,7 +166,7 @@ export function TodaySales() {
                                 y={(viewBox.cy || 0) / 1.25}
                                 className="fill-foreground text-sm font-bold"
                               >
-                                Rs. {totalSales}
+                                {formatCurrency(totalSales)}
                               </tspan>
                               <tspan
                                 x={viewBox.cx}
