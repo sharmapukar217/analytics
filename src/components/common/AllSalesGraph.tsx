@@ -57,6 +57,7 @@ export function AllSalesGraph() {
             width={chartWidth}
             height={250}
             data={chartData}
+            maxBarSize={40}
             margin={{ left: 12, right: 12 }}
           >
             <CartesianGrid vertical={false} />

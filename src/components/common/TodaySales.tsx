@@ -64,7 +64,7 @@ export function TodaySales() {
   }, [data?.todaysSales]);
 
   return (
-    <Card className="py-4">
+    <Card className="py-4 h-fit">
       <CardHeader className="px-4">
         <div className="flex justify-between">
           <CardTitle className="flex items-center gap-2">

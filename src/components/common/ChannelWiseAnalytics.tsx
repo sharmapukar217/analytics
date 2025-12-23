@@ -22,7 +22,8 @@ export function ChannelWiseAnalytics() {
     return data.channelWiseAnalytics.map((channel) => ({
       id: channel.channelId,
       name: channel.channelName,
-    }));
+    })).filter(channel => !channel.name.includes("default"));
+
   }, [data]);
 
   return (
@@ -77,8 +78,7 @@ function SalesGraph() {
     return data.channelWiseAnalytics.map((channelData) => ({
       channelName: channelData.channelName,
       sales: channelData.totalSales,
-      // completed: channelData.totalCompletedOrders,
-    }));
+    })).filter(channel => !channel.channelName.includes("default"));
   }, [data]);
 
   const barWidth = 80;
@@ -141,7 +141,7 @@ function CompletedOrdersGraph() {
     return data.channelWiseAnalytics.map((channelData) => ({
       channelName: channelData.channelName,
       completed: channelData.totalCompletedOrders,
-    }));
+    })).filter(channel => !channel.channelName.includes("default"));
   }, [data]);
 
   const barWidth = 80;

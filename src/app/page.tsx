@@ -9,6 +9,8 @@ import {
   ClockIcon,
   CheckCheckIcon,
   XCircleIcon,
+  CircleQuestionMark,
+  XIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDateRange, useGetAnalytics } from "@/hooks/useAnalytics";
@@ -33,6 +35,7 @@ import {
 } from "@/components/ui/tooltip";
 import { TopTenRidersChart } from "@/components/common/TopTenRidersChart";
 import { RidersTable } from "@/components/common/RidersTable";
+import Link from "next/link";
 
 function getDateRangeLabel({ date }: { date: DateRange | undefined }) {
   if (!date?.from) return "sales_report";
@@ -83,6 +86,18 @@ function DashboardHeader() {
         >
           {isPending ? "Exporting..." : error ? "Retry" : "Export"}
         </Button>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" asChild>
+              <Link rel="noopener noreferrer" href="https://docs.google.com/document/d/1CuIDO6uZLr2dvsTIatDj7rUErNAdCoR6MdDD_6SUdV0/edit?tab=t.0" target="_blank">
+                <CircleQuestionMark />
+              </Link>
+            </Button>
+          </TooltipTrigger>
+
+          <TooltipContent>User Guide</TooltipContent>
+        </Tooltip>
       </div>
     </header>
   );
@@ -128,7 +143,7 @@ export default function AnalyticsPage() {
         <div className="grid gap-2">
           <strong>Today&apos;s Sales</strong>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 h-full">
               <Card className="w-full h-fit gap-0 py-0 overflow-clip">
                 <CardHeader className="border-b pt-6">
                   <h1 className="text-sm font-medium text-muted-foreground group-data-[state=active]:text-primary/85">
@@ -197,7 +212,36 @@ export default function AnalyticsPage() {
                 <CardContent className="grid gap-4">
                   <div className="grid">
                     <div className="flex items-center justify-between">
-                      <h1 className="font-medium text-sm">Pending Orders</h1>
+                      <h1 className="font-medium text-sm">Delivered Orders</h1>
+                    </div>
+
+                    <div className="mt-2 space-y-0.5">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-muted-foreground font-medium text-xs">
+                          {totalCompletedOrdersToday} completed order(s) out of{" "}
+                          {totalOrdersToday} total.
+                        </h2>
+                        <h2 className="text-green-500 text-xs">
+                          {getPercentage(
+                            totalCompletedOrdersToday,
+                            totalOrdersToday,
+                          )}
+                          %
+                        </h2>
+                      </div>
+                      <Progress
+                        value={getPercentage(
+                          totalCompletedOrdersToday,
+                          totalOrdersToday,
+                        )}
+                        indicatorClassName="bg-green-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid">
+                    <div className="flex items-center justify-between">
+                      <h1 className="font-medium text-sm">Delivery in-progress</h1>
                     </div>
 
                     <div className="mt-2 space-y-0.5">
@@ -227,7 +271,7 @@ export default function AnalyticsPage() {
                   <div className="grid">
                     <div className="flex items-center justify-between">
                       <h1 className="font-medium text-sm">
-                        Orders in delivery
+                        Unassigned orders
                       </h1>
                     </div>
 
@@ -254,34 +298,7 @@ export default function AnalyticsPage() {
                     </div>
                   </div>
 
-                  <div className="grid">
-                    <div className="flex items-center justify-between">
-                      <h1 className="font-medium text-sm">Delivered Orders</h1>
-                    </div>
-
-                    <div className="mt-2 space-y-0.5">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-muted-foreground font-medium text-xs">
-                          {totalCompletedOrdersToday} completed order(s) out of{" "}
-                          {totalOrdersToday} total.
-                        </h2>
-                        <h2 className="text-green-500 text-xs">
-                          {getPercentage(
-                            totalCompletedOrdersToday,
-                            totalOrdersToday,
-                          )}
-                          %
-                        </h2>
-                      </div>
-                      <Progress
-                        value={getPercentage(
-                          totalCompletedOrdersToday,
-                          totalOrdersToday,
-                        )}
-                        indicatorClassName="bg-green-500"
-                      />
-                    </div>
-                  </div>
+                  
 
                   <div className="grid">
                     <div className="flex items-center justify-between">
@@ -338,6 +355,25 @@ export default function AnalyticsPage() {
                     <CardContent className="space-y-2">
                       <div className="flex items-center gap-2">
                         <div className="flex items-center rounded-md justify-center size-9 bg-muted text-muted-foreground">
+                          <XIcon />
+                        </div>
+                        <h2 className="text-lg font-medium">
+                          {data?.todaysSales.orders.active}
+                        </h2>
+                      </div>
+
+                      <div className="grid">
+                        <h3 className="text-sm font-semibold">
+                          Unassigned orders
+                        </h3>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="h-fit">
+                    <CardContent className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center rounded-md justify-center size-9 bg-muted text-muted-foreground">
                           <ClockIcon />
                         </div>
                         <h2 className="text-lg font-medium">
@@ -347,7 +383,7 @@ export default function AnalyticsPage() {
 
                       <div className="grid">
                         <h3 className="text-sm font-semibold">
-                          Pending Orders
+                          Delivery in-progress
                         </h3>
                       </div>
                     </CardContent>
@@ -513,6 +549,21 @@ export default function AnalyticsPage() {
             <Card>
               <CardContent className="space-y-2">
                 <div className="flex items-center gap-2">
+                  <div className="flex items-center rounded-md justify-center size-9 bg-primary/10 text-primary">
+                    <TruckIcon />
+                  </div>
+                  <h2 className="text-lg font-medium">{overallTotalActiveOrders}</h2>
+                </div>
+
+                <div className="grid">
+                  <h3 className="text-sm font-semibold">Total Unassigned Orders</h3>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="space-y-2">
+                <div className="flex items-center gap-2">
                   <div className="flex items-center rounded-md justify-center size-9 bg-muted text-muted-foreground">
                     <ClockIcon />
                   </div>
@@ -522,7 +573,7 @@ export default function AnalyticsPage() {
                 </div>
 
                 <div className="grid">
-                  <h3 className="text-sm font-semibold">Pending Orders</h3>
+                  <h3 className="text-sm font-semibold">Delivery in-progress</h3>
                 </div>
               </CardContent>
             </Card>
@@ -565,10 +616,10 @@ export default function AnalyticsPage() {
           <Card className="w-full h-full gap-0 py-0 overflow-clip">
             <CardHeader className="border-b pt-6">
               <h1 className="text-sm font-medium text-muted-foreground group-data-[state=active]:text-primary/85">
-                Sales Overview
+                Payments
               </h1>
               <h2 className="text-xl font-semibold group-data-[state=active]:text-primary">
-                {formatCurrency(data?.todaysSales.total)}
+                {formatCurrency(data?.totalSales)}
               </h2>
             </CardHeader>
 
@@ -583,7 +634,7 @@ export default function AnalyticsPage() {
                       <div className="space-y-1">
                         <Tooltip>
                           <TooltipTrigger>
-                            <h3 className="text-sm font-medium overflow-clip text-ellipsis max-w-[12ch]">
+                            <h3 className="text-sm font-medium overflow-clip text-ellipsis max-w-[18ch]">
                               {formatCurrency(data?.payments.cod)}
                             </h3>
                           </TooltipTrigger>

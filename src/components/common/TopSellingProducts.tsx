@@ -30,7 +30,7 @@ export function TopSellingProducts() {
     return data.mostSoldProductVariants.byChannel.map((channel) => ({
       id: channel.channelId,
       name: channel.channelName,
-    }));
+    })).filter(channel => !channel.name.includes("default"));
   }, [data?.mostSoldProductVariants]);
 
   const channelData = useMemo(() => {
