@@ -107,10 +107,12 @@ function SalesGraph() {
               tickFormatter={(value: string) => value.slice(0, 10)}
             />
 
-             <ChartTooltip
-            cursor={false}
-            content={<ChartTooltipContent labelFormatter={(value) => value} />}
-          />
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent labelFormatter={(value) => value} />
+              }
+            />
 
             <Bar
               radius={4}
@@ -119,7 +121,7 @@ function SalesGraph() {
               fill="var(--color-sales)"
             />
 
-             <LabelList
+            <LabelList
               position="top"
               className="fill-foreground"
               fontSize={7}

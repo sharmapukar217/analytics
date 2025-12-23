@@ -26,7 +26,13 @@ import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import { DateRange } from "react-day-picker";
 import { Tabs } from "radix-ui";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { TopTenRidersChart } from "@/components/common/TopTenRidersChart";
+import { RidersTable } from "@/components/common/RidersTable";
 
 function getDateRangeLabel({ date }: { date: DateRange | undefined }) {
   if (!date?.from) return "sales_report";
@@ -123,150 +129,62 @@ export default function AnalyticsPage() {
           <strong>Today&apos;s Sales</strong>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
             <div className="flex flex-col gap-4">
-              <Tabs.Root defaultValue="sales">
-                <Card className="w-full h-fit gap-0 p-0 overflow-clip">
-                  <Tabs.List className="grid grid-cols-2 divide-x border-b">
+              <Card className="w-full h-fit gap-0 py-0 overflow-clip">
+                <CardHeader className="border-b pt-6">
+                  <h1 className="text-sm font-medium text-muted-foreground group-data-[state=active]:text-primary/85">
+                    Sales Overview
+                  </h1>
+                  <h2 className="text-xl font-semibold group-data-[state=active]:text-primary">
+                    {formatCurrency(data?.todaysSales.total)}
+                  </h2>
+                </CardHeader>
 
-
-                     <Tabs.Trigger
-                      value="sales"
-                      className="p-4 grid text-left group data-[state=active]:bg-primary/10"
-                    >
-                      <h1 className="text-sm font-medium text-muted-foreground group-data-[state=active]:text-primary/85">
-                        Sales Overview
-                      </h1>
-                      <h2 className="text-xl font-semibold group-data-[state=active]:text-primary">
-                                                {formatCurrency(data?.todaysSales.total)}
-
-                      </h2>
-                    </Tabs.Trigger>
-
-                    <Tabs.Trigger
-                      value="payments"
-                      className="p-4 grid text-left group data-[state=active]:bg-primary/10"
-                    >
-                      <h1 className="text-sm font-medium text-muted-foreground group-data-[state=active]:text-primary/85">
-                        Payments Overview
-                      </h1>
-                      <h2 className="text-xl font-semibold group-data-[state=active]:text-primary">
-                        {formatCurrency(
-                          (data?.payments.cod || 0) +
-                            (data?.payments.khalti || 0),
-                        )}
-                      </h2>
-                    </Tabs.Trigger>
-                  </Tabs.List>
-                  <CardContent className="py-0 grid relative">
-                    <Tabs.Content
-                      value="sales"
-                      className="relative grid grid-cols-2 py-8"
-                    >
-                      <div className="grid gap-4">
-                        <div className="inline-flex items-center gap-2">
-                          {/*<div className="flex items-center justify-center size-9 bg-green-500 text-white rounded-lg">
+                <CardContent className="grid relative">
+                  <div className="relative grid grid-cols-2 py-8">
+                    <div className="grid gap-4">
+                      <div className="inline-flex items-center gap-2">
+                        {/*<div className="flex items-center justify-center size-9 bg-green-500 text-white rounded-lg">
                             <CheckCheckIcon className="size-5" />
                           </div>*/}
 
-                          <img src="/delivered.png" className="h-9 object-fit" />
+                        <img src="/delivered.png" className="h-9 object-fit" />
 
-                          <div className="grid">
-                            <h2 className="text-sm font-semibold">Delivered</h2>
-                            <div className="space-y-1">
-                              <h3 className="text-sm font-medium">
-                                {data?.todaysSales.orders.completed}
-                              </h3>
-                            </div>
+                        <div className="grid">
+                          <h2 className="text-sm font-semibold">Delivered</h2>
+                          <div className="space-y-1">
+                            <h3 className="text-sm font-medium">
+                              {data?.todaysSales.orders.completed}
+                            </h3>
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      <div className="absolute inset-y-0 flex flex-col gap-1 items-center justify-center left-1/2 -translate-x-1/2">
-                        <div className="w-0.5 h-full bg-muted rounded-full" />
-                        <div className="size-8 shrink-0 flex items-center justify-center bg-muted rounded-full text-xs font-medium text-muted-foreground">
-                          Vs
-                        </div>
-                        <div className="w-0.5 h-full bg-muted rounded-full" />
+                    <div className="absolute inset-y-0 flex flex-col gap-1 items-center justify-center left-1/2 -translate-x-1/2">
+                      <div className="w-0.5 h-full bg-muted rounded-full" />
+                      <div className="size-8 shrink-0 flex items-center justify-center bg-muted rounded-full text-xs font-medium text-muted-foreground">
+                        Vs
                       </div>
+                      <div className="w-0.5 h-full bg-muted rounded-full" />
+                    </div>
 
-                      <div className="grid gap-4 px-4 ps-8">
-                        <div className="inline-flex items-center gap-2">
-                                                   <img src="/cancelled.png" className="h-9 object-fit" />
+                    <div className="grid gap-4 px-4 ps-8">
+                      <div className="inline-flex items-center gap-2">
+                        <img src="/cancelled.png" className="h-9 object-fit" />
 
-
-                          <div className="grid">
-                            <h2 className="text-sm font-semibold">Cancelled</h2>
-                            <div className="space-y-1">
-                              <h3 className="text-sm font-medium">
-                                {data?.todaysSales.orders.cancelled}
-                              </h3>
-                            </div>
+                        <div className="grid">
+                          <h2 className="text-sm font-semibold">Cancelled</h2>
+                          <div className="space-y-1">
+                            <h3 className="text-sm font-medium">
+                              {data?.todaysSales.orders.cancelled}
+                            </h3>
                           </div>
                         </div>
                       </div>
-                    </Tabs.Content>
-
-                    <Tabs.Content
-                      value="payments"
-                      className="relative grid grid-cols-2 py-8"
-                    >
-                      <div className="grid gap-4 pe-8">
-                        <div className="inline-flex items-center gap-2 pe-8">
-                          <img src="/cod.png" className="h-9 object-fit" />
-
-                          <div className="grid">
-                            <h2 className="text-sm font-semibold">COD</h2>
-                            <div className="space-y-1">
-                              <Tooltip>
-                                <TooltipTrigger>
-                                <h3 className="text-sm font-medium overflow-clip text-ellipsis max-w-[12ch]">
-                                  {formatCurrency(data?.payments.cod)}
-                                </h3>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                  {formatCurrency(data?.payments.cod)}
-                              </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="absolute inset-y-0 flex flex-col gap-1 items-center justify-center left-1/2 -translate-x-1/2">
-                        <div className="w-0.5 h-full bg-muted rounded-full" />
-                        <div className="size-8 shrink-0 flex items-center justify-center bg-muted rounded-full text-xs font-medium text-muted-foreground">
-                          Vs
-                        </div>
-                        <div className="w-0.5 h-full bg-muted rounded-full" />
-                      </div>
-
-                      <div className="grid gap-4 px-4 ps-8">
-                        <div className="inline-flex items-center gap-2">
-                          {/*<div className="flex items-center justify-center size-9 bg-destructive text-white rounded-lg">*/}
-                            {/*<XCircleIcon className="size-5" />*/}
-                          <img src="/khalti.webp" className="size-8" />
-                          {/*</div>*/}
-
-                          <div className="grid">
-                            <h2 className="text-sm font-semibold">Khalti</h2>
-                            <div className="space-y-1">
-                                <Tooltip>
-                                <TooltipTrigger>
-                                <h3 className="text-sm font-medium overflow-clip text-ellipsis max-w-[12ch]">
-                                  {formatCurrency(data?.payments.khalti)}
-                                </h3>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                  {formatCurrency(data?.payments.khalti)}
-                              </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Tabs.Content>
-                  </CardContent>
-                </Card>
-              </Tabs.Root>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               <TodaySales />
             </div>
@@ -575,67 +493,138 @@ export default function AnalyticsPage() {
           <SalesGraph />
         </div>
 
-        <div className="h-fit grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-          <Card>
-            <CardContent className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center rounded-md justify-center size-9 bg-primary/10 text-primary">
-                  <TruckIcon />
+        <div className="grid lg:grid-cols-2 gap-4 mt-4">
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardContent className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center rounded-md justify-center size-9 bg-primary/10 text-primary">
+                    <TruckIcon />
+                  </div>
+                  <h2 className="text-lg font-medium">{totalOverallOrders}</h2>
                 </div>
-                <h2 className="text-lg font-medium">{totalOverallOrders}</h2>
-              </div>
 
-              <div className="grid">
-                <h3 className="text-sm font-semibold">Total Orders</h3>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="h-fit">
-            <CardContent className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center rounded-md justify-center size-9 bg-muted text-muted-foreground">
-                  <ClockIcon />
+                <div className="grid">
+                  <h3 className="text-sm font-semibold">Total Orders</h3>
                 </div>
-                <h2 className="text-lg font-medium">{overallPendingOrders}</h2>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="grid">
-                <h3 className="text-sm font-semibold">Pending Orders</h3>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="h-fit">
-            <CardContent className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center rounded-md justify-center size-9 bg-destructive/10 text-destructive">
-                  <ClockIcon />
+            <Card>
+              <CardContent className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center rounded-md justify-center size-9 bg-muted text-muted-foreground">
+                    <ClockIcon />
+                  </div>
+                  <h2 className="text-lg font-medium">
+                    {overallPendingOrders}
+                  </h2>
                 </div>
-                <h2 className="text-lg font-medium">
-                  {overallCancelledOrders}
-                </h2>
-              </div>
 
-              <div className="grid">
-                <h3 className="text-sm font-semibold">Cancelled Orders</h3>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="h-fit">
-            <CardContent className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center rounded-md justify-center size-9 bg-green-500/10 text-green-500">
-                  <CheckCheckIcon />
+                <div className="grid">
+                  <h3 className="text-sm font-semibold">Pending Orders</h3>
                 </div>
-                <h2 className="text-lg font-medium">
-                  {overallCompletedOrders}
-                </h2>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="grid">
-                <h3 className="text-sm font-semibold">Delivered Orders</h3>
+            <Card>
+              <CardContent className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center rounded-md justify-center size-9 bg-destructive/10 text-destructive">
+                    <ClockIcon />
+                  </div>
+                  <h2 className="text-lg font-medium">
+                    {overallCancelledOrders}
+                  </h2>
+                </div>
+
+                <div className="grid">
+                  <h3 className="text-sm font-semibold">Cancelled Orders</h3>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center rounded-md justify-center size-9 bg-green-500/10 text-green-500">
+                    <CheckCheckIcon />
+                  </div>
+                  <h2 className="text-lg font-medium">
+                    {overallCompletedOrders}
+                  </h2>
+                </div>
+
+                <div className="grid">
+                  <h3 className="text-sm font-semibold">Delivered Orders</h3>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="w-full h-full gap-0 py-0 overflow-clip">
+            <CardHeader className="border-b pt-6">
+              <h1 className="text-sm font-medium text-muted-foreground group-data-[state=active]:text-primary/85">
+                Sales Overview
+              </h1>
+              <h2 className="text-xl font-semibold group-data-[state=active]:text-primary">
+                {formatCurrency(data?.todaysSales.total)}
+              </h2>
+            </CardHeader>
+
+            <CardContent className="grid relative h-full py-8">
+              <div className="relative grid grid-cols-2">
+                <div className="grid gap-4">
+                  <div className="inline-flex items-center gap-2">
+                    <img src="/cod.png" className="h-9 object-fit" />
+
+                    <div className="grid">
+                      <h2 className="text-sm font-semibold">COD</h2>
+                      <div className="space-y-1">
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <h3 className="text-sm font-medium overflow-clip text-ellipsis max-w-[12ch]">
+                              {formatCurrency(data?.payments.cod)}
+                            </h3>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {formatCurrency(data?.payments.cod)}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute inset-y-0 flex flex-col gap-1 items-center justify-center left-1/2 -translate-x-1/2">
+                  <div className="w-0.5 h-full bg-muted rounded-full" />
+                  <div className="size-8 shrink-0 flex items-center justify-center bg-muted rounded-full text-xs font-medium text-muted-foreground">
+                    Vs
+                  </div>
+                  <div className="w-0.5 h-full bg-muted rounded-full" />
+                </div>
+
+                <div className="grid gap-4 px-4 ps-8">
+                  <div className="inline-flex items-center gap-2">
+                    <img src="/khalti.webp" className="size-8" />
+
+                    <div className="grid">
+                      <h2 className="text-sm font-semibold">Khalti</h2>
+                      <div className="space-y-1">
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <h3 className="text-sm font-medium overflow-clip text-ellipsis max-w-[12ch]">
+                              {formatCurrency(data?.payments.khalti)}
+                            </h3>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {formatCurrency(data?.payments.khalti)}
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -648,6 +637,16 @@ export default function AnalyticsPage() {
 
           <div>
             <MonthlyReport />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 mt-4 h-102 overflow-clip gap-4">
+          <div>
+            <TopTenRidersChart />
+          </div>
+
+          <div>
+            <RidersTable />
           </div>
         </div>
       </main>
