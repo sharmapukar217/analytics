@@ -1,7 +1,6 @@
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableFooter,
   TableHead,
@@ -9,39 +8,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useGetAnalytics } from "@/hooks/useAnalytics";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
 import { formatCurrency } from "@/lib/utils";
+import { useCurrentChannel } from "@/hooks/useChannels";
 
 export function TopSellingProducts() {
   const { data } = useGetAnalytics();
-  const [currentStore, setCurrentStore] = useState("all");
-
-  const channels = useMemo(() => {
-    if (!data?.mostSoldProductVariants?.byChannel) return [];
-
-    return data.mostSoldProductVariants.byChannel.map((channel) => ({
-      id: channel.channelId,
-      name: channel.channelName,
-    })).filter(channel => !channel.name.includes("default"));
-  }, [data?.mostSoldProductVariants]);
+  const { currentChannel } = useCurrentChannel();
 
   const channelData = useMemo(() => {
-    if (currentStore === "all") return data?.mostSoldProductVariants.overall;
-
     return (
       data?.mostSoldProductVariants?.byChannel.find(
-        (channel) => channel.channelId === currentStore,
+        (channel) => channel.channelCode === currentChannel?.code,
       )?.variants || []
     );
-  }, [currentStore, data]);
+  }, [currentChannel, data]);
 
   const { totalSold, totalAmount } = useMemo(() => {
     let sold = 0;
@@ -60,22 +42,6 @@ export function TopSellingProducts() {
       <CardHeader className="!pt-4 px-4 py-0">
         <div className="flex items-center gap-4 justify-between">
           <CardTitle>Top selling products </CardTitle>
-
-          <Select value={currentStore} onValueChange={setCurrentStore}>
-            <SelectTrigger size="sm">
-              <SelectValue placeholder="Select a channel" />
-            </SelectTrigger>
-
-            <SelectContent align="end">
-              <SelectItem value="all">Overall Stores</SelectItem>
-
-              {channels.map((channel) => (
-                <SelectItem key={channel.id} value={channel.id}>
-                  {channel.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </CardHeader>
       <CardContent className="border-t p-0 h-full flex">

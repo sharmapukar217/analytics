@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { DateRange } from "react-day-picker";
 
 import type { AnalyticsData } from "@/lib/types/analytics";
+import { useCurrentChannel } from "./useChannels";
 
 interface DateRangeState {
   dateRange: DateRange | undefined;
@@ -20,12 +21,18 @@ export const useDateRange = create<DateRangeState>((set) => ({
 
 export function useGetAnalytics() {
   const { dateRange } = useDateRange();
+  const { currentChannel } = useCurrentChannel();
 
   return useQuery({
-    enabled: !!dateRange,
-    queryKey: ["analytics", dateRange?.from, dateRange?.to],
+    enabled: !!currentChannel,
+    queryKey: [
+      "analytics",
+      currentChannel?.token,
+      dateRange?.from,
+      dateRange?.to,
+    ],
     queryFn: async ({ queryKey }) => {
-      const [, from, to] = queryKey;
+      const [, channeToken, from, to] = queryKey;
 
       const baseUrl = new URL(
         `${process.env.NEXT_PUBLIC_API_URL}/api/analytics`,
@@ -44,6 +51,7 @@ export function useGetAnalytics() {
       const response = await fetch(baseUrl, {
         headers: {
           "X-Analytics-Token": "sastodeal-analytics-token-2025-secure",
+          "vendure-token": channeToken || "",
         },
       });
 

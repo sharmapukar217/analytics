@@ -11,6 +11,7 @@ import {
   XCircleIcon,
   CircleQuestionMark,
   XIcon,
+  LoaderIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDateRange, useGetAnalytics } from "@/hooks/useAnalytics";
@@ -36,6 +37,59 @@ import {
 import { TopTenRidersChart } from "@/components/common/TopTenRidersChart";
 import { RidersTable } from "@/components/common/RidersTable";
 import Link from "next/link";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { useCurrentChannel, useGetChannels } from "@/hooks/useChannels";
+
+function ChannelSelect() {
+  const channelsQuery = useGetChannels();
+  const { currentChannel, setCurrentChannel } = useCurrentChannel();
+  const { isLoading } = useGetAnalytics();
+
+  const channels = React.useMemo(() => {
+    return channelsQuery.data || [];
+  }, [channelsQuery.data]);
+
+  React.useEffect(() => {
+    if (!currentChannel && !!channels.length) {
+      setCurrentChannel(channels[0]);
+    }
+  }, [channelsQuery, currentChannel, setCurrentChannel]);
+
+  if ((!channelsQuery.isLoading && !channels.length) || channels.length <= 1) {
+    return null;
+  }
+
+  return (
+    <Select
+      value={currentChannel?.token}
+      onValueChange={(channelToken) => {
+        setCurrentChannel(channels.find((ch) => ch.token === channelToken));
+      }}
+    >
+      <SelectTrigger size="sm" className="relative">
+        <SelectValue placeholder="Default Channel" />
+        {isLoading ? (
+          <div className="absolute right-3 inset-y-0 flex items-center justify-center bg-background z-100">
+            <LoaderIcon className="animate-spin" />
+          </div>
+        ) : null}
+      </SelectTrigger>
+      <SelectContent align="start">
+        {channels.map((channel) => (
+          <SelectItem key={channel.token} value={channel.token}>
+            {channel.code}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 function getDateRangeLabel({ date }: { date: DateRange | undefined }) {
   if (!date?.from) return "sales_report";
@@ -77,6 +131,8 @@ function DashboardHeader() {
   return (
     <header className="p-4 flex flex-col sm:flex-row gap-4 items-center">
       <div className="ms-auto inline-flex items-center gap-4">
+        <ChannelSelect />
+
         <AnalyticsDateRangePicker />
         <Button
           size="sm"
@@ -90,7 +146,11 @@ function DashboardHeader() {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" asChild>
-              <Link rel="noopener noreferrer" href="https://docs.google.com/document/d/1CuIDO6uZLr2dvsTIatDj7rUErNAdCoR6MdDD_6SUdV0/edit?tab=t.0" target="_blank">
+              <Link
+                rel="noopener noreferrer"
+                href="https://docs.google.com/document/d/1CuIDO6uZLr2dvsTIatDj7rUErNAdCoR6MdDD_6SUdV0/edit?tab=t.0"
+                target="_blank"
+              >
                 <CircleQuestionMark />
               </Link>
             </Button>
@@ -241,7 +301,9 @@ export default function AnalyticsPage() {
 
                   <div className="grid">
                     <div className="flex items-center justify-between">
-                      <h1 className="font-medium text-sm">Delivery in-progress</h1>
+                      <h1 className="font-medium text-sm">
+                        Delivery in-progress
+                      </h1>
                     </div>
 
                     <div className="mt-2 space-y-0.5">
@@ -270,9 +332,7 @@ export default function AnalyticsPage() {
 
                   <div className="grid">
                     <div className="flex items-center justify-between">
-                      <h1 className="font-medium text-sm">
-                        Unassigned orders
-                      </h1>
+                      <h1 className="font-medium text-sm">Unassigned orders</h1>
                     </div>
 
                     <div className="mt-2 space-y-0.5">
@@ -297,8 +357,6 @@ export default function AnalyticsPage() {
                       />
                     </div>
                   </div>
-
-                  
 
                   <div className="grid">
                     <div className="flex items-center justify-between">
@@ -552,11 +610,15 @@ export default function AnalyticsPage() {
                   <div className="flex items-center rounded-md justify-center size-9 bg-primary/10 text-primary">
                     <TruckIcon />
                   </div>
-                  <h2 className="text-lg font-medium">{overallTotalActiveOrders}</h2>
+                  <h2 className="text-lg font-medium">
+                    {overallTotalActiveOrders}
+                  </h2>
                 </div>
 
                 <div className="grid">
-                  <h3 className="text-sm font-semibold">Total Unassigned Orders</h3>
+                  <h3 className="text-sm font-semibold">
+                    Total Unassigned Orders
+                  </h3>
                 </div>
               </CardContent>
             </Card>
@@ -573,7 +635,9 @@ export default function AnalyticsPage() {
                 </div>
 
                 <div className="grid">
-                  <h3 className="text-sm font-semibold">Delivery in-progress</h3>
+                  <h3 className="text-sm font-semibold">
+                    Delivery in-progress
+                  </h3>
                 </div>
               </CardContent>
             </Card>
