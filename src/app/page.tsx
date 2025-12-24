@@ -45,6 +45,9 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useCurrentChannel, useGetChannels } from "@/hooks/useChannels";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { ScrollBar } from "@/components/ui/scroll-area";
+import { TopCustomers } from "@/components/common/TopCustomers";
 
 function ChannelSelect() {
   const channelsQuery = useGetChannels();
@@ -81,11 +84,11 @@ function ChannelSelect() {
         ) : null}
       </SelectTrigger>
       <SelectContent align="start">
-        {channels.map((channel) => (
-          <SelectItem key={channel.token} value={channel.token}>
-            {channel.code}
-          </SelectItem>
-        ))}
+          {channels.map((channel) => (
+            <SelectItem key={channel.token} value={channel.token}>
+              {channel.code}
+            </SelectItem>
+          ))}
       </SelectContent>
     </Select>
   );
@@ -130,7 +133,7 @@ function DashboardHeader() {
 
   return (
     <header className="p-4 flex flex-col sm:flex-row gap-4 items-center">
-      <div className="ms-auto inline-flex items-center gap-4">
+      <div className="ms-auto inline-flex flex-wrap items-center gap-4">
         <ChannelSelect />
 
         <AnalyticsDateRangePicker />
@@ -755,7 +758,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 mt-4 h-102 overflow-clip gap-4">
+        <div className="grid lg:grid-cols-2 mt-4 overflow-clip gap-4">
           <div>
             <TopTenRidersChart />
           </div>
@@ -763,6 +766,10 @@ export default function AnalyticsPage() {
           <div>
             <RidersTable />
           </div>
+        </div>
+
+        <div className="mt-4 max-w-md">
+          <TopCustomers />
         </div>
       </main>
     </div>

@@ -51,7 +51,7 @@ export function useGetAnalytics() {
       const response = await fetch(baseUrl, {
         headers: {
           "X-Analytics-Token": "sastodeal-analytics-token-2025-secure",
-          "vendure-token": channeToken || "",
+          "vendure-token": (channeToken || "") as string,
         },
       });
 

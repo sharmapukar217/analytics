@@ -37,8 +37,8 @@ export function TopTenRidersChart() {
       </CardHeader>
 
       <CardContent className="flex-1 pb-0">
-        <ChartContainer config={chartConfig} className="mx-auto pb-4">
-          <PieChart width={320} height={320}>
+        <ChartContainer config={chartConfig} className="aspect-square mx-auto pb-4">
+          <PieChart width={320} height={320} margin={{ top: 14, left: 14, bottom: 14, right: 14 }}>
             <ChartTooltip content={<ChartTooltipContent hideLabel />} />
             <Pie
               data={chartData}

@@ -6,6 +6,7 @@ import type { DateRange } from "react-day-picker";
 import type { AnalyticsData } from "@/lib/types/analytics";
 
 type Channel = {
+  id: string;
   code: string;
   token: string;
 };
@@ -45,18 +46,24 @@ export function useGetChannels() {
       }
 
       const json = await response.json();
-      const defaultChannelsList = (json?.channels || []) as Channel[];
+      const allChannelsList = (json?.channels || []) as Channel[];
+
+      const defaultChannel = allChannelsList.find(
+        (ch) => ch.code === DEFAULT_CHANNEL_CODE,
+      );
+      const filteredChannels = allChannelsList.filter(
+        (channel) => channel.code !== DEFAULT_CHANNEL_CODE,
+      );
+
+      if (!defaultChannel) return filteredChannels;
 
       return [
         {
+          id: defaultChannel.id,
           code: "Default Store ( All )",
-          token: defaultChannelsList.find(
-            (ch) => ch.code === DEFAULT_CHANNEL_CODE,
-          )!.token!,
+          token: defaultChannel.token!,
         },
-        ...defaultChannelsList.filter(
-          (channel) => channel.code !== DEFAULT_CHANNEL_CODE,
-        ),
+        ...filteredChannels,
       ];
     },
   });

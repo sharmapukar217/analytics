@@ -20,7 +20,7 @@ export function TopSellingProducts() {
   const channelData = useMemo(() => {
     return (
       data?.mostSoldProductVariants?.byChannel.find(
-        (channel) => channel.channelCode === currentChannel?.code,
+        (channel) => channel.channelId === currentChannel?.id,
       )?.variants || []
     );
   }, [currentChannel, data]);

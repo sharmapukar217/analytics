@@ -81,7 +81,8 @@ function SalesGraph() {
         channelName: channelData.channelName,
         sales: channelData.totalSales,
       }))
-      .filter((channel) => !channel.channelName.includes("default"));
+      .filter((channel) => !channel.channelName.includes("default"))
+      .sort((a, b) => b.sales - a.sales);
   }, [data]);
 
   const barWidth = 80;
@@ -146,7 +147,8 @@ function CompletedOrdersGraph() {
         channelName: channelData.channelName,
         completed: channelData.totalCompletedOrders,
       }))
-      .filter((channel) => !channel.channelName.includes("default"));
+      .filter((channel) => !channel.channelName.includes("default"))
+      .sort((a, b) => b.completed - a.completed);
   }, [data]);
 
   const barWidth = 80;
